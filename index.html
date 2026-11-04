@@ -49,8 +49,8 @@
             <div class="bg-white p-6 md:p-8 rounded-3xl border border-stone-200/80 shadow-xs space-y-6">
                 <div class="flex justify-between items-start border-b border-stone-100 pb-4">
                     <div>
-                        <span class="text-[10px] text-stone-400 block uppercase tracking-wider font-light">ทรงคอวี พรีเมียม</span>
-                        <h3 class="text-lg font-semibold text-stone-900">เสื้อการกุศล CHALUNG 2026</h3>
+                        <span class="text-[10px] text-stone-400 block uppercase tracking-wider font-light">เสื้อการกุศล</span>
+                        <h3 class="text-lg font-semibold text-stone-900">เตะด้วยใจ ให้ด้วยรัก</h3>
                     </div>
                     <span id="priceDisplay" class="text-xl font-bold text-stone-900 bg-stone-100 px-3.5 py-1 rounded-2xl">199.-</span>
                 </div>
@@ -363,16 +363,31 @@
             document.getElementById('shippingFeeText').innerText = SETTINGS.shippingEnabled ? `(+${SETTINGS.shippingFee} บาท)` : '(ส่งฟรี)';
             ['bankName', 'accountNo', 'accountName'].forEach(k => document.getElementById(k).innerText = SETTINGS[k] || '');
         }
+async function loadSettings() {
+    // 1. โหลดข้อมูลจากหน่วยความจำเครื่องทันที (เพื่อให้หน้าเว็บแสดงผลไวที่สุด ไม่ต้องรอเน็ต)
+    const cached = localStorage.getItem('chalung_settings');
+    if (cached) {
+        try {
+            const c = JSON.parse(cached);
+            SETTINGS = { ...c, shippingEnabled: c.shippingEnabled === 'true', shippingFee: Number(c.shippingFee) || 0, open: c.open !== 'false', closeAt: c.closeAt || '', pickupLocations: c.pickupLocations || 'รับที่เทศบาลตำบลฉลุง, รับที่คณะกรรมการชุมชน' };
+            checkShippingConfig();
+            calc();
+            applyOpenState();
+        } catch (e) { console.error(e); }
+    }
 
-        async function loadSettings() {
-            if (API_URL.startsWith('PASTE')) return;
-            try {
-                const r = await (await fetch(API_URL + '?action=config')).json();
-                if (r.ok) {
-                    const c = r.config;
-                    SETTINGS = { ...c, shippingEnabled: c.shippingEnabled === 'true', shippingFee: Number(c.shippingFee) || 0, open: c.open !== 'false', closeAt: c.closeAt || '', pickupLocations: c.pickupLocations || 'รับที่เทศบาลตำบลฉลุง, รับที่คณะกรรมการชุมชน' };
-                }
-            } catch (e) { console.error(e); }
+    if (API_URL.startsWith('PASTE')) return;
+
+    // 2. ดึงข้อมูลล่าสุดจากเซิร์ฟเวอร์แบบเบื้องหลัง แล้วบันทึกอัปเดตลงเครื่อง
+    try {
+        const r = await (await fetch(API_URL + '?action=config')).json();
+        if (r.ok) {
+            const c = r.config;
+            SETTINGS = { ...c, shippingEnabled: c.shippingEnabled === 'true', shippingFee: Number(c.shippingFee) || 0, open: c.open !== 'false', closeAt: c.closeAt || '', pickupLocations: c.pickupLocations || 'รับที่เทศบาลตำบลฉลุง, รับที่คณะกรรมการชุมชน' };
+            
+            // บันทึกเก็บไว้ใช้ครั้งถัดไป
+            localStorage.setItem('chalung_settings', JSON.stringify(c));
+
             checkShippingConfig();
             calc();
             applyOpenState();
@@ -380,6 +395,8 @@
                 loadPickupOptions();
             }
         }
+    } catch (e) { console.error(e); }
+}
 
         function loadPickupOptions() {
             const select = document.getElementById('pickupLocationSelect');
