@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CHALUNG CHARITY CUP 2026</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- Tesseract.js for OCR -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600&family=Kanit:wght@300;400;500;600&display=swap');
+        body { font-family: 'Kanit', sans-serif; background: #faf9f5; color: #1a1918; }
+        .glass-panel { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(16px); }
+    </style>
+</head>
+<body class="min-h-screen pb-24">
+
+    <!-- Header -->
+    <header class="glass-panel border-b border-stone-200/60 sticky top-0 z-50">
+        <div class="max-w-xl mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-2xl bg-stone-900 text-white flex items-center justify-center text-sm font-semibold tracking-widest shadow-md">C</div>
+                <div>
+                    <h1 class="text-sm font-medium tracking-wide text-stone-900">CHALUNG CHARITY</h1>
+                    <p class="text-[10px] text-stone-400 font-light tracking-wider">OFFICIAL STORE 2026</p>
+                </div>
+            </div>
+            <span class="text-xs text-stone-600 font-light bg-stone-100/80 px-3.5 py-1.5 rounded-full border border-stone-200/50">พรีออเดอร์เสื้อคอวี</span>
+        </div>
+    </header>
+
+    <div class="max-w-xl mx-auto px-4 mt-8">
+        
+        <!-- Hero Section -->
+        <div class="text-center space-y-3 mb-8">
+            <span class="inline-block text-[11px] uppercase tracking-widest text-stone-500 font-medium bg-stone-200/60 px-4 py-1.5 rounded-full">Limited Collection</span>
+            <h2 class="text-3xl font-light text-stone-900 tracking-tight">CHALUNG CHARITY CUP 2026</h2>
+            <p class="text-xs text-stone-500 font-light max-w-sm mx-auto leading-relaxed">สัมผัสความพรีเมียม สวมใส่สบาย ดีไซน์คอวีเป็นเอกลักษณ์</p>
+        </div>
+
+        <p id="deadlineText" class="hidden text-center text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-2xl px-4 py-2.5 mb-4"></p>
+        <div id="closedBanner" class="hidden text-center text-sm font-medium text-red-700 bg-red-50 border border-red-200 rounded-2xl px-4 py-4 mb-4">ขออภัย ขณะนี้ปิดรับออเดอร์แล้วค่ะ</div>
+
+        <form id="orderForm" onsubmit="submitOrder(event)" class="space-y-6">
+            
+            <!-- SINGLE PRODUCT CARD -->
+            <div class="bg-white p-6 md:p-8 rounded-3xl border border-stone-200/80 shadow-xs space-y-6">
+                <div class="flex justify-between items-start border-b border-stone-100 pb-4">
+                    <div>
+                        <span class="text-[10px] text-stone-400 block uppercase tracking-wider font-light">ทรงคอวี พรีเมียม</span>
+                        <h3 class="text-lg font-semibold text-stone-900">เสื้อการกุศล CHALUNG 2026</h3>
+                    </div>
+                    <span id="priceDisplay" class="text-xl font-bold text-stone-900 bg-stone-100 px-3.5 py-1 rounded-2xl">199.-</span>
+                </div>
+
+                <!-- 1. เลือกรูปแบบ (แขนสั้น / แขนยาว) -->
+                <div>
+                    <label class="block text-xs text-stone-600 mb-2 font-medium">1. เลือกรูปแบบเสื้อ</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button type="button" onclick="selectSleeve('คอวี แขนสั้น', 199)" id="btnSleeveShort" class="sleeve-btn py-3 px-4 rounded-2xl border-2 border-stone-900 bg-stone-900 text-white font-medium text-xs transition-all flex flex-col items-center justify-center space-y-0.5">
+                            <span class="text-xs">คอวี แขนสั้น</span>
+                            <span class="text-[10px] opacity-80">199 บาท</span>
+                        </button>
+                        <button type="button" onclick="selectSleeve('คอวี แขนยาว', 250)" id="btnSleeveLong" class="sleeve-btn py-3 px-4 rounded-2xl border border-stone-200/80 bg-stone-50 text-stone-700 font-medium text-xs transition-all flex flex-col items-center justify-center space-y-0.5 hover:border-stone-400">
+                            <span class="text-xs">คอวี แขนยาว</span>
+                            <span class="text-[10px] text-stone-400">250 บาท</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 2. เลือกสี -->
+                <div>
+                    <label class="block text-xs text-stone-600 mb-2 font-medium">2. เลือกสีเสื้อ</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button type="button" onclick="selectColor('สีน้ำเงิน')" id="btnColorBlue" class="color-btn py-2.5 px-4 rounded-2xl border-2 border-stone-900 bg-blue-50 text-blue-950 font-medium text-xs transition-all flex items-center justify-center space-x-2">
+                            <span class="w-3.5 h-3.5 rounded-full bg-blue-800 border border-blue-900"></span>
+                            <span>สีน้ำเงิน</span>
+                        </button>
+                        <button type="button" onclick="selectColor('สีชมพู')" id="btnColorPink" class="color-btn py-2.5 px-4 rounded-2xl border border-stone-200 bg-pink-50 text-pink-950 font-medium text-xs transition-all flex items-center justify-center space-x-2 hover:border-stone-400">
+                            <span class="w-3.5 h-3.5 rounded-full bg-pink-400 border border-pink-500"></span>
+                            <span>สีชมพู</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 3. เลือกไซส์ (SS ถึง 7XL) -->
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="text-xs text-stone-600 font-medium">3. เลือกไซส์ (รอบอก)</label>
+                        <span id="selectedSizeText" class="text-[11px] font-medium text-stone-500">ไซส์: M (รอบอก 38")</span>
+                    </div>
+                    <div class="grid grid-cols-4 md:grid-cols-7 gap-2 text-center" id="sizeContainer"></div>
+                </div>
+
+                <!-- จำนวน & ปุ่มเพิ่มลงตะกร้า -->
+                <div class="pt-4 border-t border-stone-100 flex items-center gap-3">
+                    <div class="flex items-center border border-stone-200 rounded-2xl overflow-hidden bg-stone-50/80 p-1">
+                        <button type="button" onclick="changeQty(-1)" class="w-8 h-8 flex items-center justify-center text-stone-600 hover:bg-stone-200 rounded-xl transition-all">-</button>
+                        <span id="qtyDisplay" class="w-10 text-center text-xs font-bold text-stone-900">1</span>
+                        <button type="button" onclick="changeQty(1)" class="w-8 h-8 flex items-center justify-center text-stone-600 hover:bg-stone-200 rounded-xl transition-all">+</button>
+                    </div>
+                    <button type="button" onclick="addToCart()" class="flex-1 py-3.5 bg-stone-900 hover:bg-stone-800 text-white rounded-2xl text-xs font-medium transition-all shadow-md flex items-center justify-center space-x-2">
+                        <svg class="w-4 h-4 inline-block align-[-2px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></svg>
+                        <span>เพิ่มลงตะกร้า</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- CART SUMMARY -->
+            <div class="bg-white p-6 md:p-8 rounded-3xl border border-stone-200/80 shadow-xs space-y-4">
+                <div class="flex justify-between items-center border-b border-stone-100 pb-3">
+                    <h3 class="text-xs font-semibold text-stone-900 uppercase tracking-widest flex items-center">
+                        <svg class="w-4 h-4 inline-block align-[-2px] text-stone-400 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg> ตะกร้าสินค้าของคุณ
+                    </h3>
+                    <span id="cartBadge" class="text-xs bg-stone-100 text-stone-700 px-3 py-1 rounded-full font-medium">0 รายการ</span>
+                </div>
+
+                <div id="cartItemsList" class="space-y-2.5">
+                    <p class="text-xs text-stone-400 text-center py-6 font-light">ยังไม่มีรายการในตะกร้า (เลือกแบบด้านบนแล้วกดเพิ่มลงตะกร้าค่ะ)</p>
+                </div>
+            </div>
+
+            <!-- CUSTOMER INFO -->
+            <div class="bg-white p-6 md:p-8 rounded-3xl border border-stone-200/80 shadow-xs space-y-5">
+                <div class="flex items-center space-x-2 border-b border-stone-100 pb-3">
+                    <svg class="w-4 h-4 inline-block align-[-2px] text-stone-400 text-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    <h3 class="text-xs font-semibold text-stone-900 uppercase tracking-widest">ข้อมูลผู้รับสินค้า</h3>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs text-stone-500 mb-1.5 font-light">ชื่อ-นามสกุล <span class="text-red-400">*</span></label>
+                        <input type="text" id="custName" required placeholder="ระบุชื่อและนามสกุลจริง" class="w-full px-4 py-3 bg-stone-50/70 rounded-2xl border border-stone-200/80 text-xs focus:bg-white focus:outline-none focus:border-stone-400 transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-stone-500 mb-1.5 font-light">เบอร์โทรศัพท์ <span class="text-red-400">*</span></label>
+                        <input type="tel" id="custPhone" required placeholder="0812345678" pattern="[0-9]{9,10}" class="w-full px-4 py-3 bg-stone-50/70 rounded-2xl border border-stone-200/80 text-xs focus:bg-white focus:outline-none focus:border-stone-400 transition-all">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs text-stone-500 mb-2 font-light">วิธีการรับสินค้า <span class="text-red-400">*</span></label>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <label class="flex items-center p-4 rounded-2xl border border-stone-200/80 bg-stone-50/40 cursor-pointer hover:border-stone-400 transition-all text-xs">
+                            <input type="radio" name="shippingType" value="home" checked onchange="toggleShipping()" class="text-stone-900 focus:ring-0">
+                            <span class="ml-3 text-stone-900 font-medium">จัดส่งถึงบ้าน <span class="text-stone-400 font-light" id="shippingFeeText">(+50 บาท)</span></span>
+                        </label>
+                        <label class="flex items-center p-4 rounded-2xl border border-stone-200/80 bg-stone-50/40 cursor-pointer hover:border-stone-400 transition-all text-xs">
+                            <input type="radio" name="shippingType" value="pickup" onchange="toggleShipping()" class="text-stone-900 focus:ring-0">
+                            <span class="ml-3 text-stone-900 font-medium">มารับเอง <span class="text-emerald-600 font-light">(ฟรี)</span></span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- ส่วนเลือกจุดรับเอง -->
+                <div id="pickupBox" class="pt-1" style="display: none;">
+                    <label class="block text-xs text-stone-500 mb-1.5 font-light">เลือกจุดมารับสินค้าเอง <span class="text-red-400">*</span></label>
+                    <select id="pickupLocationSelect" class="w-full px-4 py-3 bg-stone-50/70 rounded-2xl border border-stone-200/80 text-xs focus:bg-white focus:outline-none focus:border-stone-400 transition-all mb-2" onchange="handlePickupChange()">
+                        <!-- Dynamic Options -->
+                    </select>
+                    <input type="text" id="customPickupInput" placeholder="ระบุสถานที่รับเองเพิ่มเติม" class="w-full px-4 py-3 bg-stone-50/70 rounded-2xl border border-stone-200/80 text-xs focus:bg-white focus:outline-none focus:border-stone-400 transition-all" style="display: none;">
+                </div>
+
+                <div id="addressBox" class="pt-1">
+                    <label class="block text-xs text-stone-500 mb-1.5 font-light">ที่อยู่จัดส่งพัสดุ <span class="text-red-400">*</span></label>
+                    <textarea id="custAddress" required rows="2" placeholder="บ้านเลขที่, ซอย, ถนน, ตำบล, อำเภอ, จังหวัด, รหัสไปรษณีย์" class="w-full px-4 py-3 bg-stone-50/70 rounded-2xl border border-stone-200/80 text-xs focus:bg-white focus:outline-none focus:border-stone-400 transition-all"></textarea>
+                </div>
+            </div>
+
+            <!-- PAYMENT & SLIP -->
+            <div class="bg-white p-6 md:p-8 rounded-3xl border border-stone-200/80 shadow-xs space-y-6">
+                <div class="flex items-center space-x-2 border-b border-stone-100 pb-3">
+                    <svg class="w-4 h-4 inline-block align-[-2px] text-stone-400 text-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/></svg>
+                    <h3 class="text-xs font-semibold text-stone-900 uppercase tracking-widest">ชำระเงินและแนบสลิป</h3>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                    <div class="bg-stone-50/70 p-6 rounded-3xl border border-stone-200/60 text-center space-y-3">
+                        <span class="text-[11px] text-stone-500 font-light block">สแกนเพื่อชำระเงินผ่าน PromptPay</span>
+                        <div class="inline-block p-3 bg-white rounded-2xl border border-stone-200/80 shadow-xs">
+                            <div id="qrBox" class="w-36 h-36 flex items-center justify-center text-center text-[11px] text-stone-400 mx-auto"></div>
+                        </div>
+                        <div class="text-xs text-stone-600 space-y-0.5 pt-1">
+                            <p id="bankName" class="font-semibold text-stone-900"></p>
+                            <p id="accountNo" class="font-mono text-[11px] text-stone-500"></p>
+                            <p id="accountName" class="text-[11px] text-stone-400 font-light"></p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div class="bg-stone-50/80 p-5 rounded-2xl border border-stone-200/60 space-y-2.5 text-xs">
+                            <div class="flex justify-between text-stone-500 font-light">
+                                <span>ค่าเสื้อรวม</span>
+                                <span id="subtotalAmount" class="font-medium text-stone-800">0 บาท</span>
+                            </div>
+                            <div class="flex justify-between text-stone-500 font-light">
+                                <span>ค่าจัดส่ง</span>
+                                <span id="shippingFeeAmount" class="font-medium text-stone-800">50 บาท</span>
+                            </div>
+                            <div class="border-t border-stone-200/80 pt-3 flex justify-between text-sm font-medium text-stone-900">
+                                <span>ยอดโอนสุทธิ</span>
+                                <span id="totalAmount" class="text-emerald-700 font-bold text-base">50 บาท</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs text-stone-500 mb-1.5 font-light">อัปโหลดหลักฐานการโอนเงิน (สลิป) <span class="text-red-400">*</span></label>
+                            <input type="file" id="slipFile" accept="image/*" required onchange="handleSlip(event)" class="w-full text-xs text-stone-500 file:mr-3 file:py-3 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-medium file:bg-stone-900 file:text-white hover:file:bg-stone-800 cursor-pointer bg-stone-50/70 rounded-2xl border border-stone-200/80">
+                        </div>
+
+                        <div id="ocrStatus" class="hidden text-xs p-3.5 rounded-xl"></div>
+                    </div>
+                </div>
+
+                <button type="submit" id="submitBtn" class="w-full py-4 bg-stone-900 hover:bg-stone-800 text-white font-medium rounded-2xl shadow-md transition-all text-xs tracking-widest uppercase">
+                    ยืนยันคำสั่งซื้อ
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Script -->
+    <script>
+        const sizes = [
+            { code: "SS", bust: '34"' }, { code: "S", bust: '36"' }, { code: "M", bust: '38"' },
+            { code: "L", bust: '40"' }, { code: "XL", bust: '42"' }, { code: "2XL", bust: '44"' },
+            { code: "3XL", bust: '46"' }, { code: "4XL", bust: '48"' }, { code: "5XL", bust: '50"' },
+            { code: "6XL", bust: '52"' }, { code: "7XL", bust: '54"' }
+        ];
+
+        let currentItem = {
+            sleeve: "คอวี แขนสั้น",
+            price: 199,
+            color: "สีน้ำเงิน",
+            size: "M",
+            bust: '38"',
+            qty: 1
+        };
+
+        let cart = [];
+        let slipBase64 = "";
+
+        const API_URL = 'https://script.google.com/macros/s/AKfycbxM4tBJWwjfjURMMYx9AYxK01Es11X5YlGH1_7hfOlDt7wjYlJFwoLBu6N22MM3i4p8aA/exec';
+        let SETTINGS = { shippingEnabled: true, shippingFee: 50, promptpayId: '', bankName: '', accountNo: '', accountName: '', open: true, closeAt: '', pickupLocations: 'รับที่เทศบาลตำบลฉลุง, รับที่คณะกรรมการชุมชน' };
+        function newReqId() { return (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : 'r-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10); }
+        let reqId = newReqId();
+        let slipCheck = '';
+        let lastQR = '';
+
+        renderSizeButtons();
+        checkShippingConfig();
+        calc();
+        loadSettings();
+
+        function selectSleeve(sleeveType, price) {
+            currentItem.sleeve = sleeveType;
+            currentItem.price = price;
+            document.getElementById('priceDisplay').innerText = `${price}.-`;
+
+            const btnShort = document.getElementById('btnSleeveShort');
+            const btnLong = document.getElementById('btnSleeveLong');
+
+            if (sleeveType === 'คอวี แขนสั้น') {
+                btnShort.className = "sleeve-btn py-3 px-4 rounded-2xl border-2 border-stone-900 bg-stone-900 text-white font-medium text-xs transition-all flex flex-col items-center justify-center space-y-0.5";
+                btnLong.className = "sleeve-btn py-3 px-4 rounded-2xl border border-stone-200/80 bg-stone-50 text-stone-700 font-medium text-xs transition-all flex flex-col items-center justify-center space-y-0.5 hover:border-stone-400";
+            } else {
+                btnLong.className = "sleeve-btn py-3 px-4 rounded-2xl border-2 border-stone-900 bg-stone-900 text-white font-medium text-xs transition-all flex flex-col items-center justify-center space-y-0.5";
+                btnShort.className = "sleeve-btn py-3 px-4 rounded-2xl border border-stone-200/80 bg-stone-50 text-stone-700 font-medium text-xs transition-all flex flex-col items-center justify-center space-y-0.5 hover:border-stone-400";
+            }
+        }
+
+        function selectColor(color) {
+            currentItem.color = color;
+            const btnBlue = document.getElementById('btnColorBlue');
+            const btnPink = document.getElementById('btnColorPink');
+
+            if (color === 'สีน้ำเงิน') {
+                btnBlue.className = "color-btn py-2.5 px-4 rounded-2xl border-2 border-stone-900 bg-blue-50 text-blue-950 font-medium text-xs transition-all flex items-center justify-center space-x-2";
+                btnPink.className = "color-btn py-2.5 px-4 rounded-2xl border border-stone-200 bg-pink-50 text-pink-950 font-medium text-xs transition-all flex items-center justify-center space-x-2 hover:border-stone-400";
+            } else {
+                btnPink.className = "color-btn py-2.5 px-4 rounded-2xl border-2 border-stone-900 bg-pink-50 text-pink-950 font-medium text-xs transition-all flex items-center justify-center space-x-2";
+                btnBlue.className = "color-btn py-2.5 px-4 rounded-2xl border border-stone-200 bg-blue-50 text-blue-950 font-medium text-xs transition-all flex items-center justify-center space-x-2 hover:border-stone-400";
+            }
+        }
+
+        function renderSizeButtons() {
+            const container = document.getElementById('sizeContainer');
+            container.innerHTML = sizes.map(s => `
+                <button type="button" onclick="selectSize('${s.code}')" class="size-btn py-2 border border-stone-200 rounded-xl text-[11px] font-medium hover:border-stone-400 transition-all ${s.code === 'M' ? 'bg-stone-900 text-white border-stone-900 shadow-xs' : 'bg-white text-stone-700'}" data-size="${s.code}">
+                    ${s.code}
+                </button>
+            `).join('');
+        }
+
+        function selectSize(code) {
+            const found = sizes.find(x => x.code === code);
+            const bust = found ? found.bust : '';
+            currentItem.size = code;
+            currentItem.bust = bust;
+            document.getElementById('selectedSizeText').innerText = `ไซส์: ${code} (รอบอก ${bust})`;
+
+            document.querySelectorAll('.size-btn').forEach(btn => {
+                if (btn.dataset.size === code) {
+                    btn.className = "size-btn py-2 border border-stone-900 bg-stone-900 text-white rounded-xl text-[11px] font-medium shadow-xs transition-all";
+                } else {
+                    btn.className = "size-btn py-2 border border-stone-200 bg-white text-stone-700 rounded-xl text-[11px] font-medium hover:border-stone-400 transition-all";
+                }
+            });
+        }
+
+        function changeQty(delta) {
+            currentItem.qty = Math.max(1, currentItem.qty + delta);
+            document.getElementById('qtyDisplay').innerText = currentItem.qty;
+        }
+
+        function addToCart() {
+            const existingIndex = cart.findIndex(c => c.sleeve === currentItem.sleeve && c.color === currentItem.color && c.size === currentItem.size);
+
+            if (existingIndex > -1) {
+                cart[existingIndex].qty += currentItem.qty;
+            } else {
+                cart.push({ ...currentItem });
+            }
+
+            renderCart();
+            calc();
+            // เอา alert ออกตามคำขอ ไม่ให้เด้งกวนใจ
+        }
+
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            renderCart();
+            calc();
+        }
+
+        function renderCart() {
+            const list = document.getElementById('cartItemsList');
+            const badge = document.getElementById('cartBadge');
+            badge.innerText = `${cart.length} รายการ`;
+
+            if (cart.length === 0) {
+                list.innerHTML = `<p class="text-xs text-stone-400 text-center py-6 font-light">ยังไม่มีรายการในตะกร้า (เลือกแบบด้านบนแล้วกดเพิ่มลงตะกร้าค่ะ)</p>`;
+                return;
+            }
+
+            list.innerHTML = cart.map((item, idx) => `
+                <div class="flex justify-between items-center p-3.5 bg-stone-50/70 rounded-2xl border border-stone-200/60 text-xs">
+                    <div>
+                        <span class="font-semibold text-stone-900 block">${item.sleeve} (${item.color})</span>
+                        <span class="text-stone-500 text-[11px]">ไซส์: ${item.size} (${item.bust}) | จำนวน: ${item.qty} ตัว</span>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <span class="font-semibold text-stone-900 text-sm">${(item.price * item.qty).toLocaleString()}.-</span>
+                        <button type="button" onclick="removeFromCart(${idx})" class="text-stone-400 hover:text-red-500 p-1"><svg class="w-4 h-4 inline-block align-[-2px] text-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function checkShippingConfig() {
+            document.getElementById('shippingFeeText').innerText = SETTINGS.shippingEnabled ? `(+${SETTINGS.shippingFee} บาท)` : '(ส่งฟรี)';
+            ['bankName', 'accountNo', 'accountName'].forEach(k => document.getElementById(k).innerText = SETTINGS[k] || '');
+        }
+
+        async function loadSettings() {
+            if (API_URL.startsWith('PASTE')) return;
+            try {
+                const r = await (await fetch(API_URL + '?action=config')).json();
+                if (r.ok) {
+                    const c = r.config;
+                    SETTINGS = { ...c, shippingEnabled: c.shippingEnabled === 'true', shippingFee: Number(c.shippingFee) || 0, open: c.open !== 'false', closeAt: c.closeAt || '', pickupLocations: c.pickupLocations || 'รับที่เทศบาลตำบลฉลุง, รับที่คณะกรรมการชุมชน' };
+                }
+            } catch (e) { console.error(e); }
+            checkShippingConfig();
+            calc();
+            applyOpenState();
+            if (document.querySelector('input[name="shippingType"]:checked').value === 'pickup') {
+                loadPickupOptions();
+            }
+        }
+
+        function loadPickupOptions() {
+            const select = document.getElementById('pickupLocationSelect');
+            const locs = (SETTINGS.pickupLocations || 'รับที่เทศบาลตำบลฉลุง, รับที่คณะกรรมการชุมชน').split(',').map(s => s.trim()).filter(Boolean);
+            select.innerHTML = locs.map(l => `<option value="${l}">${l}</option>`).join('') + `<option value="other">-- ระบุอื่นๆ --</option>`;
+            handlePickupChange();
+        }
+
+        function handlePickupChange() {
+            const select = document.getElementById('pickupLocationSelect');
+            const customInput = document.getElementById('customPickupInput');
+            if (select.value === 'other') {
+                customInput.style.display = 'block';
+                customInput.required = true;
+            } else {
+                customInput.style.display = 'none';
+                customInput.required = false;
+                customInput.value = '';
+            }
+        }
+
+        function closeTime() { return SETTINGS.closeAt ? new Date(SETTINGS.closeAt + ':00+07:00').getTime() : NaN; }
+        function isOpenNow() {
+            if (!SETTINGS.open) return false;
+            const t = closeTime();
+            return isNaN(t) || Date.now() < t;
+        }
+        function fmtDeadline(s) {
+            const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(s || '');
+            return m ? `${m[3]}/${m[2]}/${+m[1] + 543} เวลา ${m[4]}:${m[5]} น.` : '';
+        }
+        function applyOpenState() {
+            const open = isOpenNow();
+            document.getElementById('closedBanner').classList.toggle('hidden', open);
+            const dl = document.getElementById('deadlineText');
+            const txt = open ? fmtDeadline(SETTINGS.closeAt) : '';
+            dl.classList.toggle('hidden', !txt);
+            dl.innerText = txt ? 'ปิดรับออเดอร์ ' + txt : '';
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = !open;
+            btn.classList.toggle('opacity-60', !open);
+            btn.innerText = open ? 'ยืนยันคำสั่งซื้อ' : 'ปิดรับออเดอร์แล้ว';
+        }
+        setInterval(applyOpenState, 30000);
+
+        function toggleShipping() {
+            const isHome = document.querySelector('input[name="shippingType"]:checked').value === 'home';
+            document.getElementById('addressBox').style.display = isHome ? 'block' : 'none';
+            document.getElementById('custAddress').required = isHome;
+            
+            const pickupBox = document.getElementById('pickupBox');
+            pickupBox.style.display = !isHome ? 'block' : 'none';
+            if (!isHome) {
+                loadPickupOptions();
+            }
+            calc();
+        }
+
+        function crc16(str) {
+            let crc = 0xFFFF;
+            for (let i = 0; i < str.length; i++) {
+                crc ^= str.charCodeAt(i) << 8;
+                for (let b = 0; b < 8; b++) crc = (crc & 0x8000) ? ((crc << 1) ^ 0x1021) & 0xFFFF : (crc << 1) & 0xFFFF;
+            }
+            return crc.toString(16).toUpperCase().padStart(4, '0');
+        }
+
+        function ppPayload(id, amount) {
+            id = id.replace(/\D/g, '');
+            const f = (t, v) => t + String(v.length).padStart(2, '0') + v;
+            const isNat = id.length >= 13;
+            const target = isNat ? id : '0066' + id.replace(/^0/, '');
+            const acc = f('00', 'A000000677010111') + f(isNat ? '02' : '01', target);
+            const p = f('00', '01') + f('01', '12') + f('29', acc) + f('53', '764') + f('54', amount.toFixed(2)) + f('58', 'TH') + '6304';
+            return p + crc16(p);
+        }
+
+        function renderQR(tot) {
+            const box = document.getElementById('qrBox');
+            const key = SETTINGS.promptpayId + '|' + tot;
+            if (key === lastQR) return;
+            lastQR = key;
+            box.innerHTML = '';
+            if (!SETTINGS.promptpayId || typeof QRCode === 'undefined') { box.innerText = 'กรุณาโอนตามเลขบัญชีด้านล่าง'; return; }
+            if (tot <= 0) { box.innerText = 'เลือกสินค้าเพื่อสร้าง QR'; return; }
+            new QRCode(box, { text: ppPayload(SETTINGS.promptpayId, tot), width: 144, height: 144 });
+        }
+
+        function calc() {
+            const sub = cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
+            const isHome = document.querySelector('input[name="shippingType"]:checked').value === 'home';
+            const fee = (isHome && SETTINGS.shippingEnabled) ? SETTINGS.shippingFee : 0;
+            const tot = sub + fee;
+
+            document.getElementById('subtotalAmount').innerText = sub.toLocaleString() + ' บาท';
+            document.getElementById('shippingFeeAmount').innerText = (isHome && !SETTINGS.shippingEnabled) ? 'จัดส่งฟรี' : fee.toLocaleString() + ' บาท';
+            document.getElementById('totalAmount').innerText = tot.toLocaleString() + ' บาท';
+            renderQR(tot);
+            return { sub, fee, tot };
+        }
+
+        function handleSlip(e) {
+            const f = e.target.files[0];
+            if (!f) return;
+            const u = URL.createObjectURL(f);
+            const img = new Image();
+            img.onload = () => {
+                const k = Math.min(1, 1000 / Math.max(img.width, img.height));
+                const c = document.createElement('canvas');
+                c.width = Math.round(img.width * k);
+                c.height = Math.round(img.height * k);
+                c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+                slipBase64 = c.toDataURL('image/jpeg', 0.75);
+                URL.revokeObjectURL(u);
+                checkOCR(f);
+            };
+            img.onerror = () => { slipBase64 = ''; alert('ไม่สามารถอ่านไฟล์รูปนี้ได้ กรุณาเลือกรูปสลิปใหม่ค่ะ'); };
+            img.src = u;
+        }
+
+        function checkOCR(f) {
+            const box = document.getElementById('ocrStatus');
+            slipCheck = '';
+            box.className = "text-xs p-3.5 rounded-xl bg-stone-100 text-stone-600 block font-light";
+            box.innerHTML = '<svg class="w-4 h-4 inline-block align-[-2px] mr-1.5 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.2-8.6"/></svg> กำลังตรวจสลิปเบื้องต้น...';
+            if (typeof Tesseract === 'undefined') { box.innerHTML = 'อัปโหลดสลิปเรียบร้อยแล้ว แอดมินจะตรวจสอบให้ค่ะ'; return; }
+
+            Tesseract.recognize(f, 'tha+eng').then(({ data: { text } }) => {
+                const t = text.replace(/[,\s]/g, '');
+                const tot = calc().tot;
+                const okWord = /สำเร็จ|successful/i.test(t);
+                const okAmt = t.includes(tot.toFixed(2)) || new RegExp('(^|\\D)' + tot + '(\\D|$)').test(t);
+                if (okWord && okAmt) {
+                    slipCheck = 'พบข้อความสำเร็จ + พบยอด ' + tot;
+                    box.className = "text-xs p-3.5 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 block";
+                    box.innerHTML = '<svg class="w-4 h-4 inline-block align-[-2px] mr-1.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> พบข้อความโอนสำเร็จและยอด ' + tot.toLocaleString() + ' บาทในสลิป (แอดมินจะตรวจซ้ำอีกครั้ง)';
+                } else {
+                    slipCheck = 'ตรวจไม่ผ่านอัตโนมัติ' + (okWord ? ' (ไม่พบยอด)' : '');
+                    box.className = "text-xs p-3.5 rounded-xl bg-amber-50 text-amber-800 border border-amber-200 block";
+                    box.innerHTML = '<svg class="w-4 h-4 inline-block align-[-2px] mr-1.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m10.3 3.9-8.5 14.7A2 2 0 0 0 3.5 21h17a2 2 0 0 0 1.7-2.4L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg> ระบบอ่านยอดหรือข้อความในสลิปไม่ได้ชัดเจน แอดมินจะตรวจสอบให้ค่ะ (ยังสั่งซื้อได้ตามปกติ)';
+                }
+            }).catch(() => {
+                slipCheck = 'OCR ไม่ทำงาน';
+                box.className = "text-xs p-3.5 rounded-xl bg-stone-100 text-stone-600 block";
+                box.innerHTML = 'อัปโหลดสลิปเรียบร้อยแล้ว แอดมินจะตรวจสอบให้ค่ะ';
+            });
+        }
+
+        async function submitOrder(e) {
+            e.preventDefault();
+            if (API_URL.startsWith('PASTE')) { alert('ยังไม่ได้ตั้งค่า API_URL ของ Google Apps Script'); return; }
+            if (!isOpenNow()) { applyOpenState(); alert('ขออภัย ปิดรับออเดอร์แล้วค่ะ'); return; }
+            if (cart.length === 0) { alert('กรุณาเลือกสินค้าและกดเพิ่มลงตะกร้าก่อนค่ะ'); return; }
+            if (!slipBase64) { alert('กรุณาแนบสลิปโอนเงินก่อนกดยืนยันค่ะ'); return; }
+
+            const shippingType = document.querySelector('input[name="shippingType"]:checked').value;
+            let addressVal = '';
+            if (shippingType === 'home') {
+                addressVal = document.getElementById('custAddress').value;
+            } else {
+                const selectVal = document.getElementById('pickupLocationSelect').value;
+                addressVal = selectVal === 'other' ? document.getElementById('customPickupInput').value : selectVal;
+                if (!addressVal) { alert('กรุณาเลือกหรือระบุจุดมารับสินค้าเองค่ะ'); return; }
+                addressVal = 'มารับเอง: ' + addressVal;
+            }
+
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.classList.add('opacity-60');
+            try {
+                const res = await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'submit',
+                        name: document.getElementById('custName').value,
+                        phone: document.getElementById('custPhone').value,
+                        shippingType: shippingType,
+                        address: addressVal,
+                        items: cart.map(c => ({ sleeve: c.sleeve, color: c.color, size: c.size, qty: c.qty })),
+                        slip: slipBase64,
+                        slipCheck: slipCheck,
+                        reqId: reqId
+                    })
+                });
+                const r = await res.json();
+                if (!r.ok) throw new Error(r.error || 'บันทึกไม่สำเร็จ');
+                alert(`บันทึกคำสั่งซื้อเรียบร้อยแล้ว\nเลขที่ออเดอร์: ${r.id}\nยอดชำระ: ${r.total.toLocaleString()} บาท\nขอบคุณที่ร่วมสนับสนุนค่ะ`);
+                document.getElementById('orderForm').reset();
+                cart = [];
+                slipBase64 = '';
+                slipCheck = '';
+                reqId = newReqId();
+                renderCart();
+                document.getElementById('ocrStatus').className = "hidden";
+                toggleShipping();
+            } catch (err) {
+                alert('สั่งซื้อไม่สำเร็จ: ' + err.message + '\nกรุณาลองใหม่อีกครั้งค่ะ');
+            } finally {
+                applyOpenState();
+            }
+        }
+    </script>
+</body>
+</html>
