@@ -534,15 +534,39 @@
             return p + crc16(p);
         }
 
-        function renderQR(tot) {
+function renderQR(tot) {
             const box = document.getElementById('qrBox');
-            const key = SETTINGS.promptpayId + '|' + tot;
-            if (key === lastQR) return;
-            lastQR = key;
-            box.innerHTML = '';
-            if (!SETTINGS.promptpayId || typeof QRCode === 'undefined') { box.innerText = 'กรุณาโอนตามเลขบัญชีด้านล่าง'; return; }
-            if (tot <= 0) { box.innerText = 'เลือกสินค้าเพื่อสร้าง QR'; return; }
-            new QRCode(box, { text: ppPayload(SETTINGS.promptpayId, tot), width: 144, height: 144 });
+            if (tot <= 0) {
+                box.innerHTML = 'เลือกสินค้าเพื่อสร้าง QR';
+                return;
+            }
+
+            // ตรวจสอบว่า promptpayId เป็นเบอร์พร้อมเพย์ (10 หรือ 13 หลัก) หรือเป็นเลขบัญชีธนาคารธรรมดา
+            const id = (SETTINGS.promptpayId || '').replace(/\D/g, '');
+            
+            if (id.length === 10 || id.length === 13) {
+                // ถ้าเป็นพร้อมเพย์ สร้าง QR Code ปกติ
+                const key = id + '|' + tot;
+                if (key === lastQR) return;
+                lastQR = key;
+                box.innerHTML = '';
+                if (typeof QRCode === 'undefined') {
+                    box.innerText = 'กรุณาโอนตามเลขบัญชีด้านล่าง';
+                    return;
+                }
+                new QRCode(box, { text: ppPayload(id, tot), width: 144, height: 144 });
+            } else {
+                // ถ้าใส่เป็นเลขบัญชีธนาคารทั่วไป (สร้าง QR ไม่ได้) ให้แสดงกล่องกดคัดลอกเลขบัญชีแทน
+                box.innerHTML = `
+                    <div class="flex flex-col items-center justify-center h-full p-2 text-center space-y-2">
+                        <span class="text-[11px] text-stone-600 font-medium">ใช้เลขบัญชีธนาคาร (ไม่มีพร้อมเพย์)</span>
+                        <button type="button" onclick="navigator.clipboard.writeText('${SETTINGS.accountNo}'); alert('คัดลอกเลขบัญชีแล้ว: ${SETTINGS.accountNo}');" class="px-3 py-2 bg-stone-900 text-white rounded-xl text-[11px] font-medium hover:bg-stone-800 transition-all shadow-xs">
+                            📋 คัดลอกเลขบัญชี
+                        </button>
+                        <span class="text-[10px] text-stone-400">กดเพื่อคัดลอกไปวางในแอปธนาคาร</span>
+                    </div>
+                `;
+            }
         }
 
         function calc() {
