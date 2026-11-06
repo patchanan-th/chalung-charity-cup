@@ -6,7 +6,6 @@
     <title>CHALUNG CHARITY CUP 2026</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com/3.4.17"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <!-- Tesseract.js for OCR -->
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <style>
@@ -214,17 +213,20 @@
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-                        <!-- ส่วนแสดง QR Code หรือ เลขบัญชี -->
-                        <div class="bg-stone-50/70 p-6 rounded-3xl border border-stone-200/60 text-center space-y-3" id="paymentContainerBox">
-                            <span class="text-[11px] text-stone-500 font-light block" id="paymentInstructionText">สแกนเพื่อชำระเงินผ่าน PromptPay</span>
-                            <div class="inline-block p-3 bg-white rounded-2xl border border-stone-200/80 shadow-xs" id="qrWrapperBox">
-                                <div id="qrBox" class="w-36 h-36 flex items-center justify-center text-center text-[11px] text-stone-400 mx-auto"></div>
+                        <!-- แสดงเฉพาะข้อมูลบัญชีธนาคาร (ไม่มีกรอบ PromptPay / QR Code) -->
+                        <div class="bg-stone-50/70 p-6 rounded-3xl border border-stone-200/60 space-y-3">
+                            <span class="text-[11px] text-stone-500 font-light block text-center">โอนเงินผ่านบัญชีธนาคาร</span>
+                            <div class="p-4 bg-white rounded-2xl border border-stone-200/80 shadow-xs space-y-2.5 text-center">
+                                <div>
+                                    <p id="bankName" class="font-semibold text-stone-900 text-xs"></p>
+                                    <p id="accountNo" class="font-mono text-sm font-bold text-stone-900 tracking-wider my-1"></p>
+                                    <p id="accountName" class="text-[11px] text-stone-500 font-light"></p>
+                                </div>
+                                <button type="button" onclick="copyAccountNo()" class="w-full py-2 px-3 bg-stone-900 text-white rounded-xl text-xs font-medium hover:bg-stone-800 transition-all shadow-xs flex items-center justify-center space-x-1.5">
+                                    <span>📋 คัดลอกเลขบัญชี</span>
+                                </button>
                             </div>
-                            <div class="text-xs text-stone-600 space-y-0.5 pt-1" id="bankInfoTextContainer">
-                                <p id="bankName" class="font-semibold text-stone-900"></p>
-                                <p id="accountNo" class="font-mono text-[11px] text-stone-500"></p>
-                                <p id="accountName" class="text-[11px] text-stone-400 font-light"></p>
-                            </div>
+                            <p class="text-[10px] text-amber-700 font-light text-center">💡 กรุณาโอนตามยอดสุทธิให้ตรงเป๊ะ เพื่อความสะดวกในการตรวจสอบสลิป</p>
                         </div>
 
                         <div class="space-y-4">
@@ -282,7 +284,6 @@
         function newReqId() { return (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : 'r-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10); }
         let reqId = newReqId();
         let slipCheck = '';
-        let lastQR = '';
 
         renderSizeButtons();
         checkShippingConfig();
@@ -312,7 +313,6 @@
             document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
             document.getElementById('step' + stepNum).classList.add('active');
 
-            // อัปเดตสีจุดขั้นตอนด้านบน
             for (let i = 1; i <= 3; i++) {
                 const dot = document.getElementById('stepDot' + i);
                 const label = document.getElementById('stepLabel' + i);
@@ -436,7 +436,6 @@
                 if (el) el.innerText = SETTINGS[k] || '';
             });
 
-            // ซ่อนหรือแสดงตัวเลือก "จัดส่งถึงบ้าน" ตามการตั้งค่าหลังบ้าน
             const homeShippingLabel = document.querySelector('input[name="shippingType"][value="home"]').closest('label');
             const pickupRadio = document.querySelector('input[name="shippingType"][value="pickup"]');
 
@@ -449,6 +448,16 @@
             } else {
                 if (homeShippingLabel) homeShippingLabel.style.display = 'flex';
             }
+        }
+
+        function copyAccountNo() {
+            const accNo = SETTINGS.accountNo || '';
+            if (!accNo) { alert('ยังไม่ได้กำหนดเลขบัญชี'); return; }
+            navigator.clipboard.writeText(accNo).then(() => {
+                alert('คัดลอกเลขบัญชีแล้ว: ' + accNo);
+            }).catch(() => {
+                alert('ไม่สามารถคัดลอกอัตโนมัติได้');
+            });
         }
 
         async function loadSettings() {
@@ -540,58 +549,6 @@
             calc();
         }
 
-        function crc16(str) {
-            let crc = 0xFFFF;
-            for (let i = 0; i < str.length; i++) {
-                crc ^= str.charCodeAt(i) << 8;
-                for (let b = 0; b < 8; b++) crc = (crc & 0x8000) ? ((crc << 1) ^ 0x1021) & 0xFFFF : (crc << 1) & 0xFFFF;
-            }
-            return crc.toString(16).toUpperCase().padStart(4, '0');
-        }
-
-        function ppPayload(id, amount) {
-            id = id.replace(/\D/g, '');
-            const f = (t, v) => t + String(v.length).padStart(2, '0') + v;
-            const isNat = id.length >= 13;
-            const target = isNat ? id : '0066' + id.replace(/^0/, '');
-            const acc = f('00', 'A000000677010111') + f(isNat ? '02' : '01', target);
-            const p = f('00', '01') + f('01', '12') + f('29', acc) + f('53', '764') + f('54', amount.toFixed(2)) + f('58', 'TH') + '6304';
-            return p + crc16(p);
-        }
-
-        function renderQR(tot) {
-            const box = document.getElementById('qrBox');
-            if (!box) return;
-            if (tot <= 0) {
-                box.innerHTML = 'เลือกสินค้าเพื่อสร้าง QR';
-                return;
-            }
-
-            const id = (SETTINGS.promptpayId || '').replace(/\D/g, '');
-            
-            if (id.length === 10 || id.length === 13) {
-                const key = id + '|' + tot;
-                if (key === lastQR) return;
-                lastQR = key;
-                box.innerHTML = '';
-                if (typeof QRCode === 'undefined') {
-                    box.innerText = 'กรุณาโอนตามเลขบัญชีด้านล่าง';
-                    return;
-                }
-                new QRCode(box, { text: ppPayload(id, tot), width: 144, height: 144 });
-            } else {
-                box.innerHTML = `
-                    <div class="flex flex-col items-center justify-center h-full p-2 text-center space-y-2">
-                        <span class="text-[11px] text-stone-600 font-medium">ใช้เลขบัญชีธนาคาร (ไม่มีพร้อมเพย์)</span>
-                        <button type="button" onclick="navigator.clipboard.writeText('${SETTINGS.accountNo}'); alert('คัดลอกเลขบัญชีแล้ว: ${SETTINGS.accountNo}');" class="px-3 py-2 bg-stone-900 text-white rounded-xl text-[11px] font-medium hover:bg-stone-800 transition-all shadow-xs">
-                            📋 คัดลอกเลขบัญชี
-                        </button>
-                        <span class="text-[10px] text-stone-400">กดเพื่อคัดลอกไปวางในแอปธนาคาร</span>
-                    </div>
-                `;
-            }
-        }
-
         function calc() {
             const sub = cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
             const shippingRadio = document.querySelector('input[name="shippingType"]:checked');
@@ -600,9 +557,8 @@
             const tot = sub + fee;
 
             document.getElementById('subtotalAmount').innerText = sub.toLocaleString() + ' บาท';
-            document.getElementById('shippingFeeAmount').innerText = (isHome && !SETTINGS.shippingEnabled) ? 'จัดส่งฟรี' : fee.toLocaleString() + ' บาท';
+            document.getElementById('shippingFeeAmount').innerText = (isHome && !SETTINGS.shippingEnabled) ? 'ส่งฟรี' : fee.toLocaleString() + ' บาท';
             document.getElementById('totalAmount').innerText = tot.toLocaleString() + ' บาท';
-            renderQR(tot);
             return { sub, fee, tot };
         }
 
@@ -695,7 +651,7 @@
                 alert(`บันทึกคำสั่งซื้อเรียบร้อยแล้ว\nเลขที่ออเดอร์: ${r.id}\nยอดชำระ: ${r.total.toLocaleString()} บาท\nขอบคุณที่ร่วมสนับสนุนค่ะ`);
                 document.getElementById('orderForm').reset();
                 cart = [];
-                slipBase64 = '';
+                slipBase64 = "";
                 slipCheck = '';
                 reqId = newReqId();
                 renderCart();
