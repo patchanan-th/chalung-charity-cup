@@ -214,12 +214,13 @@
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-                        <div class="bg-stone-50/70 p-6 rounded-3xl border border-stone-200/60 text-center space-y-3">
-                            <span class="text-[11px] text-stone-500 font-light block">สแกนเพื่อชำระเงินผ่าน PromptPay</span>
-                            <div class="inline-block p-3 bg-white rounded-2xl border border-stone-200/80 shadow-xs">
+                        <!-- ส่วนแสดง QR Code หรือ เลขบัญชี -->
+                        <div class="bg-stone-50/70 p-6 rounded-3xl border border-stone-200/60 text-center space-y-3" id="paymentContainerBox">
+                            <span class="text-[11px] text-stone-500 font-light block" id="paymentInstructionText">สแกนเพื่อชำระเงินผ่าน PromptPay</span>
+                            <div class="inline-block p-3 bg-white rounded-2xl border border-stone-200/80 shadow-xs" id="qrWrapperBox">
                                 <div id="qrBox" class="w-36 h-36 flex items-center justify-center text-center text-[11px] text-stone-400 mx-auto"></div>
                             </div>
-                            <div class="text-xs text-stone-600 space-y-0.5 pt-1">
+                            <div class="text-xs text-stone-600 space-y-0.5 pt-1" id="bankInfoTextContainer">
                                 <p id="bankName" class="font-semibold text-stone-900"></p>
                                 <p id="accountNo" class="font-mono text-[11px] text-stone-500"></p>
                                 <p id="accountName" class="text-[11px] text-stone-400 font-light"></p>
@@ -299,7 +300,8 @@
             if (stepNum === 3) {
                 const name = document.getElementById('custName').value.trim();
                 const phone = document.getElementById('custPhone').value.trim();
-                const isHome = document.querySelector('input[name="shippingType"]:checked').value === 'home';
+                const shippingRadio = document.querySelector('input[name="shippingType"]:checked');
+                const isHome = shippingRadio && shippingRadio.value === 'home';
                 const address = document.getElementById('custAddress').value.trim();
 
                 if (!name) { alert('กรุณากรอกชื่อ-นามสกุลค่ะ'); return; }
@@ -429,7 +431,24 @@
 
         function checkShippingConfig() {
             document.getElementById('shippingFeeText').innerText = SETTINGS.shippingEnabled ? `(+${SETTINGS.shippingFee} บาท)` : '(ส่งฟรี)';
-            ['bankName', 'accountNo', 'accountName'].forEach(k => document.getElementById(k).innerText = SETTINGS[k] || '');
+            ['bankName', 'accountNo', 'accountName'].forEach(k => {
+                const el = document.getElementById(k);
+                if (el) el.innerText = SETTINGS[k] || '';
+            });
+
+            // ซ่อนหรือแสดงตัวเลือก "จัดส่งถึงบ้าน" ตามการตั้งค่าหลังบ้าน
+            const homeShippingLabel = document.querySelector('input[name="shippingType"][value="home"]').closest('label');
+            const pickupRadio = document.querySelector('input[name="shippingType"][value="pickup"]');
+
+            if (SETTINGS.shippingEnabled === false) {
+                if (homeShippingLabel) homeShippingLabel.style.display = 'none';
+                if (pickupRadio) {
+                    pickupRadio.checked = true;
+                    toggleShipping();
+                }
+            } else {
+                if (homeShippingLabel) homeShippingLabel.style.display = 'flex';
+            }
         }
 
         async function loadSettings() {
@@ -455,7 +474,8 @@
                     checkShippingConfig();
                     calc();
                     applyOpenState();
-                    if (document.querySelector('input[name="shippingType"]:checked').value === 'pickup') {
+                    const currentShipping = document.querySelector('input[name="shippingType"]:checked');
+                    if (currentShipping && currentShipping.value === 'pickup') {
                         loadPickupOptions();
                     }
                 }
@@ -507,10 +527,15 @@
         setInterval(applyOpenState, 30000);
 
         function toggleShipping() {
-            const isHome = document.querySelector('input[name="shippingType"]:checked').value === 'home';
-            document.getElementById('addressBox').style.display = isHome ? 'block' : 'none';
+            const shippingRadio = document.querySelector('input[name="shippingType"]:checked');
+            const isHome = shippingRadio && shippingRadio.value === 'home';
+            
+            const addressBox = document.getElementById('addressBox');
             const pickupBox = document.getElementById('pickupBox');
-            pickupBox.style.display = !isHome ? 'block' : 'none';
+            
+            if (addressBox) addressBox.style.display = isHome ? 'block' : 'none';
+            if (pickupBox) pickupBox.style.display = !isHome ? 'block' : 'none';
+            
             if (!isHome) loadPickupOptions();
             calc();
         }
@@ -534,18 +559,17 @@
             return p + crc16(p);
         }
 
-function renderQR(tot) {
+        function renderQR(tot) {
             const box = document.getElementById('qrBox');
+            if (!box) return;
             if (tot <= 0) {
                 box.innerHTML = 'เลือกสินค้าเพื่อสร้าง QR';
                 return;
             }
 
-            // ตรวจสอบว่า promptpayId เป็นเบอร์พร้อมเพย์ (10 หรือ 13 หลัก) หรือเป็นเลขบัญชีธนาคารธรรมดา
             const id = (SETTINGS.promptpayId || '').replace(/\D/g, '');
             
             if (id.length === 10 || id.length === 13) {
-                // ถ้าเป็นพร้อมเพย์ สร้าง QR Code ปกติ
                 const key = id + '|' + tot;
                 if (key === lastQR) return;
                 lastQR = key;
@@ -556,7 +580,6 @@ function renderQR(tot) {
                 }
                 new QRCode(box, { text: ppPayload(id, tot), width: 144, height: 144 });
             } else {
-                // ถ้าใส่เป็นเลขบัญชีธนาคารทั่วไป (สร้าง QR ไม่ได้) ให้แสดงกล่องกดคัดลอกเลขบัญชีแทน
                 box.innerHTML = `
                     <div class="flex flex-col items-center justify-center h-full p-2 text-center space-y-2">
                         <span class="text-[11px] text-stone-600 font-medium">ใช้เลขบัญชีธนาคาร (ไม่มีพร้อมเพย์)</span>
@@ -571,7 +594,8 @@ function renderQR(tot) {
 
         function calc() {
             const sub = cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
-            const isHome = document.querySelector('input[name="shippingType"]:checked').value === 'home';
+            const shippingRadio = document.querySelector('input[name="shippingType"]:checked');
+            const isHome = shippingRadio && shippingRadio.value === 'home';
             const fee = (isHome && SETTINGS.shippingEnabled) ? SETTINGS.shippingFee : 0;
             const tot = sub + fee;
 
@@ -636,7 +660,8 @@ function renderQR(tot) {
             if (cart.length === 0) { alert('กรุณาเลือกสินค้าและกดเพิ่มลงตะกร้าก่อนค่ะ'); return; }
             if (!slipBase64) { alert('กรุณาแนบสลิปโอนเงินก่อนกดยืนยันค่ะ'); return; }
 
-            const shippingType = document.querySelector('input[name="shippingType"]:checked').value;
+            const shippingRadio = document.querySelector('input[name="shippingType"]:checked');
+            const shippingType = shippingRadio ? shippingRadio.value : 'pickup';
             let addressVal = '';
             if (shippingType === 'home') {
                 addressVal = document.getElementById('custAddress').value;
